@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Whale Detector</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #07111f,
+                    #102a43
+                );
+
+            color: white;
+
+            padding: 40px;
+        }
+
+
+        .container {
+
+            max-width: 1100px;
+
+            margin: auto;
+        }
+
+
+        h1 {
+
+            text-align: center;
+
+            font-size: 42px;
+
+            margin-bottom: 40px;
+        }
+
+
+        .grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 25px;
+        }
+
+
+        .card {
+
+            background: rgba(
+                255,
+                255,
+                255,
+                0.08
+            );
+
+            border: 1px solid rgba(
+                255,
+                255,
+                255,
+                0.1
+            );
+
+            border-radius: 20px;
+
+            padding: 30px;
+
+            text-align: center;
+
+            backdrop-filter: blur(10px);
+
+            box-shadow:
+                0 10px 30px
+                rgba(0, 0, 0, 0.25);
+        }
+
+
+        .label {
+
+            color: #94a3b8;
+
+            font-size: 18px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .value {
+
+            font-size: 42px;
+
+            font-weight: 700;
+
+            margin: 20px 0;
+        }
+
+
+        .distance {
+
+            color: #38bdf8;
+        }
+
+
+        .running {
+
+            color: #4ade80;
+        }
+
+
+        .stopping {
+
+            color: #f87171;
+        }
+
+
+        .sent {
+
+            color: #4ade80;
+        }
+
+
+        .not-sent {
+
+            color: #fbbf24;
+        }
+
+
+        .icon {
+
+            font-size: 50px;
+
+            margin-top: 15px;
+        }
+
+
+        .bar-background {
+
+            width: 100%;
+
+            height: 20px;
+
+            background: #1e293b;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            margin-top: 25px;
+        }
+
+
+        .bar {
+
+            height: 100%;
+
+            width: 0%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #38bdf8,
+                    #0ea5e9
+                );
+
+            transition:
+                width 0.3s ease,
+                background 0.3s ease;
+        }
+
+
+        .whale-alert {
+
+            display: none;
+
+            margin-top: 30px;
+
+            padding: 20px;
+
+            border-radius: 15px;
+
+            background: #7f1d1d;
+
+            border: 1px solid #ef4444;
+
+            text-align: center;
+
+            font-size: 24px;
+
+            font-weight: bold;
+        }
+
+
+        .whale-alert.active {
+
+            display: block;
+
+            animation: pulse 1s infinite;
+        }
+
+
+        @keyframes pulse {
+
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+
+        .footer {
+
+            text-align: center;
+
+            color: #64748b;
+
+            margin-top: 35px;
+        }
+
+
+        @media (max-width: 800px) {
+
+            .grid {
+
+                grid-template-columns: 1fr;
+            }
+
+            body {
+
+                padding: 20px;
+            }
+
+            h1 {
+
+                font-size: 32px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>
+        🐋 Whale Detector
+    </h1>
+
+
+    <div class="grid">
+
+
+        <!-- DISTANCE -->
+
+        <div class="card">
+
+            <div class="label">
+                Whale Distance
+            </div>
+
+            <div
+                id="distance"
+                class="value distance"
+            >
+                --
+            </div>
+
+            <div>
+                centimeters
+            </div>
+
+
+            <div class="bar-background">
+
+                <div
+                    id="distanceBar"
+                    class="bar"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- MOTOR -->
+
+        <div class="card">
+
+            <div class="label">
+                Motor Status
+            </div>
+
+            <div
+                id="motorStatus"
+                class="value running"
+            >
+                RUNNING
+            </div>
+
+            <div
+                id="motorIcon"
+                class="icon"
+            >
+                ⚙️
+            </div>
+
+        </div>
+
+
+
+        <!-- MESSAGE -->
+
+        <div class="card">
+
+            <div class="label">
+                Text Message
+            </div>
+
+            <div
+                id="messageStatus"
+                class="value not-sent"
+            >
+                NOT SENT
+            </div>
+
+            <div
+                id="messageIcon"
+                class="icon"
+            >
+                📱
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- WHALE ALERT -->
+
+    <div
+        id="whaleAlert"
+        class="whale-alert"
+    >
+
+        🐋 WHALE DETECTED — MOTOR STOPPING
+
+    </div>
+
+
+
+    <div class="footer">
+
+        Last update:
+        <span id="lastUpdate">
+            Waiting for Arduino...
+        </span>
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+
+    // ========================================================
+    // CONNECT TO PYTHON
+    // ========================================================
+
+    const events = new EventSource("/events");
+
+
+    events.onmessage = function(event) {
+
+        const data = JSON.parse(event.data);
+
+
+        // ====================================================
+        // DISTANCE
+        // ====================================================
+
+        if (data.distance !== null) {
+
+            document.getElementById(
+                "distance"
+            ).textContent =
+                data.distance.toFixed(2);
+
+
+            /*
+             * 0 cm = full bar
+             * 50 cm = empty bar
+             */
+
+            let percentage =
+                ((50 - data.distance) / 50) * 100;
+
+
+            percentage =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        percentage
+                    )
+                );
+
+
+            const bar =
+                document.getElementById(
+                    "distanceBar"
+                );
+
+
+            bar.style.width =
+                percentage + "%";
+
+
+            // Make the bar red when very close
+
+            if (data.distance < 10) {
+
+                bar.style.background =
+                    "#ef4444";
+
+            } else {
+
+                bar.style.background =
+                    "#38bdf8";
+            }
+
+        }
+
+
+        // ====================================================
+        // MOTOR
+        // ====================================================
+
+        const motorStatus =
+            document.getElementById(
+                "motorStatus"
+            );
+
+
+        const motorIcon =
+            document.getElementById(
+                "motorIcon"
+            );
+
+
+        if (data.motorStopping) {
+
+            motorStatus.textContent =
+                "STOPPING";
+
+            motorStatus.className =
+                "value stopping";
+
+            motorIcon.textContent =
+                "🛑";
+
+        } else {
+
+            motorStatus.textContent =
+                "RUNNING";
+
+            motorStatus.className =
+                "value running";
+
+            motorIcon.textContent =
+                "⚙️";
+        }
+
+
+        // ====================================================
+        // TEXT MESSAGE
+        // ====================================================
+
+        const messageStatus =
+            document.getElementById(
+                "messageStatus"
+            );
+
+
+        const messageIcon =
+            document.getElementById(
+                "messageIcon"
+            );
+
+
+        if (data.messageSent) {
+
+            messageStatus.textContent =
+                "SENT";
+
+            messageStatus.className =
+                "value sent";
+
+            messageIcon.textContent =
+                "✅";
+
+        } else {
+
+            messageStatus.textContent =
+                "NOT SENT";
+
+            messageStatus.className =
+                "value not-sent";
+
+            messageIcon.textContent =
+                "📱";
+        }
+
+
+        // ====================================================
+        // WHALE ALERT
+        // ====================================================
+
+        const whaleAlert =
+            document.getElementById(
+                "whaleAlert"
+            );
+
+
+        if (data.whaleDetected) {
+
+            whaleAlert.classList.add(
+                "active"
+            );
+
+        } else {
+
+            whaleAlert.classList.remove(
+                "active"
+            );
+        }
+
+
+        // ====================================================
+        // TIME
+        // ====================================================
+
+        document.getElementById(
+            "lastUpdate"
+        ).textContent =
+            new Date().toLocaleTimeString();
+
+    };
+
+
+    // ========================================================
+    // CONNECTION ERROR
+    // ========================================================
+
+    events.onerror = function() {
+
+        document.getElementById(
+            "lastUpdate"
+        ).textContent =
+            "Disconnected from Python";
+
+    };
+
+
+</script>
+
+
+</body>
+
+</html>
